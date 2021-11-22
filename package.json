@@ -1,0 +1,15 @@
+{
+  "name": "imagestenograph",
+  "version": "1.0.0",
+  "description": "Hide Text in Image",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Joshnaks",
+  "license": "ISC",
+  "dependencies": {
+    "jimp": "^0.16.1",
+    "math.js": "^1.1.46"
+  }
+}
