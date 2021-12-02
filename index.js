@@ -9,6 +9,10 @@ const args = process.argv.slice(2);
 //Grab Image input path
 const imgPath = args[0];
 
+//Grab Text input
+const txtPath = args[1];
+const text = fs.readFileSync(txtPath).toString();
+
 //Read Image
 let imgData = jimp.read(imgPath, async (err, img) =>
 {
@@ -71,6 +75,55 @@ let imgData = jimp.read(imgPath, async (err, img) =>
         {
             const imageJSON = {red: redChannel, green: greenChannel, blue: blueChannel, alpha: alphaChannel};
             fs.writeFileSync("./img.json", JSON.stringify(imageJSON, null, 4));
+
+            //Bit Changing
+            //Set up byte chunks
+            const dataSize = ( text.length * 8 )
+            const dataSpace = ( Math.floor(img.bitmap.height / 4) * Math.floor(img.bitmap.width / 4) * 2 )
+
+            //Array for all used channels
+            let byteChunks = [];
+            let chnl = 0;
+            do
+            {
+                //Array for each channel
+                let channelChunks = [];
+                while(channelChunks.length < Math.floor(img.bitmap.height / 4) )
+                {
+                    channelChunks.push([]);
+                }
+
+                while(channelChunks[0].length < Math.floor(img.bitmap.width / 4) )
+                {
+                    for(let i = 0; i < channelChunks.length; ++i)
+                    {
+                        channelChunks[i].push([null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]);
+                    }
+                }
+
+                //Assign valuewhile (dataSize > dataSpace * byteChunks.length)s to byte chunks
+                //Itterate through characters
+                for (let i = 0; i < text.length; i += 2)
+                {
+                    //Find Binary Representation of Character
+                    let assign1 = text.charCodeAt(i).toString(2);
+                    let assign2 = text.charCodeAt(i + 1).toString(2);
+
+                    //Find Row and Column of corresponding byte chunk
+                    let assignColumn = i % ( Math.floor( img.bitmap.width / 4 ) * 2 )
+                    let assignRow = ( i - assignColumn ) / 6;
+
+                    //Assign New Values
+                    for(let j = 0; j < 8; ++ j)
+                    {
+                        
+                    }
+                }
+
+                byteChunks.push(channelChunks);
+
+                ++chnl;
+            } while (dataSize > dataSpace * byteChunks.length)
         }
     });
 });
