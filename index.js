@@ -23,7 +23,7 @@ if(SigBits != 1 && SigBits != 2 && SigBits != 4 && SigBits != 8);
 const args = process.argv.slice(2);
 if(!(args.length >= 1))
 {
-    throw("User did not include parameters\n\n node . {encode/decode} {image path} {text path (Only for encode)}");
+    throw("User did not include parameters\n\n node . {encode/decode} {charbits (8/16/32) Defaults to 8} {image path} {text path (Only for encode)}");
 }
 
 //Encode or Decode
@@ -39,25 +39,38 @@ if(args[0].toLowerCase == "encode" || args[0].toLowerCase() == "enc" || args[0].
     throw("User did not include Encode or Decode parameter,\nPlease Include one of the following\n  Encode: encode, enc, en, e 1\n    Decode: decode, dec, de, d, 0");
 }
 
+//Charcode length
+let charBitLength = 8;
+if(!(args[1]))
+{
+    throw("Insufficiant Parameters");
+} else if (args[1] == 16)
+{
+    charBitLength = 16;
+} else if (args[1] == 32)
+{
+    charBitLength = 32;
+}
+
 //Grab Image input path
 let imgPath;
-if(!(args[1]))
+if(!(args[2]))
 {
     throw("User did not include a path to an image");
 } else
 {
-    imgPath = args[1];
+    imgPath = args[2];
 }
 
 
 //Grab Text input
 let txtPath;
-if(encode && !(args[2]))
+if(encode && !(args[3]))
 {
     throw("User did not include a path to text file");
 } else if(encode)
 {
-    txtPath = args[2];
+    txtPath = args[3];
 } else
 {
     txtPath = ".txt";
@@ -82,7 +95,7 @@ if(encode)
     {
         let charByte = Number(text.charCodeAt(i)).toString(2);
         
-        while (charByte.length < 8)
+        while (charByte.length < charBitLength)
         {
             charByte = "0" + charByte;
         }
@@ -91,7 +104,16 @@ if(encode)
 
         if(i == (text.length - 1))
         {
-            textbin = textbin + "00000000";
+            if(charBitLength == 8)
+            {
+                textbin = textbin + "00000000";
+            } else if(charBitLength == 16)
+            {
+                textbin = textbin + "0000000000000000";
+            } else if(charBitLength == 32)
+            {
+                textbin = textbin + "00000000000000000000000000000000";
+            }
         }
     }
 }
@@ -294,13 +316,13 @@ let imgData = jimp.read(imgPath, async (err, img) =>
                         }
                     }
 
-                    if(((i + 1) * SigBits) % 8 == 2)
+                    if(((i + 1) * SigBits) % charBitLength == 2) //!!!!!!!!!!
                     {
                         nullcount = 0;
                     }
                     if(allZero)
                     {
-                        nullcount += ( 1 / ( 8 / SigBits ));
+                        nullcount += ( 1 / ( charBitLength / SigBits )); //!!!!!!!!!
                     } else
                     {
                         nullcount = 0;
@@ -312,7 +334,7 @@ let imgData = jimp.read(imgPath, async (err, img) =>
                         binArray.push(readBucket[a]);
                     }
 
-                    if(nullcount == '1')
+                    if(nullcount == 1)
                     {
                         break;
                     }
@@ -333,18 +355,22 @@ let imgData = jimp.read(imgPath, async (err, img) =>
                         let allZero = false;
                         for(let a = 0; a < readBucket.length; ++a)
                         {
-                            if(readBucket[a] != "0")
+                            if(readBucket[a] == 1)
                             {
                                 break;
-                            } else if(a = (readBucket.length - 1))
+                            } else if(a == (readBucket.length - 1))
                             {
                                 allZero = true;
                             }
                         }
 
+                        if(((i + 1) * SigBits) % charBitLength == 2) //!!!!!!!!!!
+                        {
+                            nullcount = 0;
+                        }
                         if(allZero)
                         {
-                            nullcount += ( 1 / ( 8 / SigBits ))
+                            nullcount += ( 1 / ( charBitLength / SigBits )); //!!!!!!!!!
                         } else
                         {
                             nullcount = 0;
@@ -356,7 +382,7 @@ let imgData = jimp.read(imgPath, async (err, img) =>
                             binArray.push(readBucket[a]);
                         }
 
-                        if(nullcount == '1')
+                        if(nullcount == 1)
                         {
                             break;
                         }
@@ -378,18 +404,22 @@ let imgData = jimp.read(imgPath, async (err, img) =>
                         let allZero = false;
                         for(let a = 0; a < readBucket.length; ++a)
                         {
-                            if(readBucket[a] != "0")
+                            if(readBucket[a] == 1)
                             {
                                 break;
-                            } else if(a = (readBucket.length - 1))
+                            } else if(a == (readBucket.length - 1))
                             {
                                 allZero = true;
                             }
                         }
 
+                        if(((i + 1) * SigBits) % charBitLength == 2) //!!!!!!!!!!
+                        {
+                            nullcount = 0;
+                        }
                         if(allZero)
                         {
-                            nullcount += ( 1 / ( 8 / SigBits ))
+                            nullcount += ( 1 / ( charBitLength / SigBits )); //!!!!!!!!!
                         } else
                         {
                             nullcount = 0;
@@ -401,7 +431,7 @@ let imgData = jimp.read(imgPath, async (err, img) =>
                             binArray.push(readBucket[a]);
                         }
 
-                        if(nullcount == '1')
+                        if(nullcount == 1)
                         {
                             break;
                         }
@@ -417,7 +447,7 @@ let imgData = jimp.read(imgPath, async (err, img) =>
                 {
                     outBucket = outBucket + binString[sus];
 
-                    if((sus + 1) % 8 == 0 && sus != (binString.length - 1))
+                    if((sus + 1) % charBitLength == 0 && sus != (binString.length - 1))
                     {
                         output = output + (String.fromCharCode(parseInt(outBucket, 2)));
                         outBucket = "";
